@@ -159,7 +159,7 @@ def shape(mask):
     #transforming into asymmetry score
     xs = 0 #default score
     ys = 0 #default score
-    t = 0.85 #threshhold for asymmetry (symmetry must be above 90%)
+    t = 0.9 #threshhold for asymmetry (symmetry must be above 90%)
 
     if x < t:
         xs = 1 #asymmetry score over x-axis is 1
