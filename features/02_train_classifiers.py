@@ -8,8 +8,8 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.metrics import roc_auc_score, confusion_matrix
 
 
-label_data = "/Users/karimamahdaoui/Documents/GitHub/pds2024/data/ground_truth.csv"
-feature_data = "/Users/karimamahdaoui/Documents/GitHub/pds2024/data/features.csv"
+label_data = "data/ground_truth.csv"
+feature_data = "data/features.csv"
 
 df_labels = pd.read_csv(feature_data)
 df_feat= pd.read_csv(label_data)
