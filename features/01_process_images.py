@@ -1,6 +1,16 @@
-from extract_features import asymmetry, color, dg
+"""
+@authors: cjep, kmah, feso, aith, nozo
+"""
+
+
 import matplotlib.pyplot as plt
 import os
+
+# Import our own file that has the feature extraction functions
+from extract_features import asymmetry, color, dg
+
+
+# ---Image processing function---
 
 def load(image_dir, mask_dir):
 
@@ -8,16 +18,16 @@ def load(image_dir, mask_dir):
     Function to load images and masks
 
     Inputs:
-     - Directory for images
-     - Directory for masks
+     • Directory for images
+     • Directory for masks
 
     Output:
-     - List of images
-     - List of masks
-     - List of filenames/image ID's
+     • List of images
+     • List of masks
+     • List of filenames/image IDs
     """
 
-    # Initialize lists to store images and masks
+    # Initialize lists to store images, masks and filenames
     images = []
     masks = []
     filenames = []
@@ -45,19 +55,23 @@ def load(image_dir, mask_dir):
 
     return images, masks, filenames
 
-# Directory paths for images and masks
+
+
+# Directory paths for images, masks and output
 image_dir = input("Please enter image directory: ")
 mask_dir = input("Please enter mask directory: ")
-output_folder = input("Please enter output folder path: ")
+output_dir = input("Please enter output directory: ")
+
 
 # Load images and masks
 images, masks, filenames = load(image_dir, mask_dir)
 
-# Path to the output CSV file
-output_path = os.path.join(output_folder, "features.csv")
 
-# CSV file with the results
-# CSV file with the results
+# Path to the output CSV file
+output_path = os.path.join(output_dir, "features.csv")
+
+
+# Writing CSV file with the results
 with open(output_path, "w") as outfile:
 
     outfile.write(f"image_id,A,C,DG\n")

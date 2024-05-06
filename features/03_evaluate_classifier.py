@@ -1,3 +1,7 @@
+"""
+@authors: cjep, kmah, feso, aith, nozo
+"""
+
 import pickle 
 
 from extract_features import asymmetry, color, dg

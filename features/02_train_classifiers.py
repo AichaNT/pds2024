@@ -1,3 +1,7 @@
+"""
+@authors: cjep, kmah, feso, aith, nozo
+"""
+
 import pandas as pd
 import numpy as np
 import pickle
@@ -8,13 +12,17 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.metrics import roc_auc_score, confusion_matrix
 
 
+
 label_data = "data/ground_truth.csv"
 feature_data = "data/features.csv"
+
 
 df_labels = pd.read_csv(feature_data)
 df_feat= pd.read_csv(label_data)
 
+
 df = pd.merge(df_labels, df_feat, left_on=["image_id"], right_on=["image_id"])[["melanoma","A","C", "DG"]]
+
 
 X = df[list(df.columns)[1:]]
 y = df["melanoma"]
@@ -28,6 +36,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 num_folds = 5
 skf = StratifiedKFold(n_splits=num_folds)
 
+
 #Different classifiers to test out
 classifiers = [
     KNeighborsClassifier(n_neighbors=1),
@@ -40,6 +49,7 @@ AUC_val = np.empty([num_folds,num_classifiers])
 
 true_labels = [[] for _ in range(num_classifiers)]
 predicted_labels = [[] for _ in range(num_classifiers)]
+
 
 # Loop through the folds
 for i, (train_index, test_index) in enumerate(skf.split(X_train, y_train)):
@@ -62,6 +72,7 @@ for i, (train_index, test_index) in enumerate(skf.split(X_train, y_train)):
         # Append true labels and predicted labels for this fold
         true_labels[j].extend(y_val_fold)
         predicted_labels[j].extend(pred)
+
 
 #Average over all folds
 average_acc = np.mean(AUC_val, axis=0) 
