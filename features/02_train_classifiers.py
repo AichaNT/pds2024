@@ -73,7 +73,10 @@ skf = StratifiedKFold(n_splits=num_folds)
 KNN_classifiers = [
     KNeighborsClassifier(n_neighbors=1),
     KNeighborsClassifier(n_neighbors=3),
-    KNeighborsClassifier(n_neighbors=5)
+    KNeighborsClassifier(n_neighbors=5),
+    KNeighborsClassifier(n_neighbors=7),
+    KNeighborsClassifier(n_neighbors=9),
+    KNeighborsClassifier(n_neighbors=11)
 ]
 
 num_KNN_classifiers = len(KNN_classifiers)
@@ -85,11 +88,11 @@ predicted_labels = [[] for _ in range(num_KNN_classifiers)]
 
 
 # Loop through the folds
-for i, (train_index, test_index) in enumerate(skf.split(X_train, y_train)):
+for i, (train_index, val_index) in enumerate(skf.split(X_train, y_train)):
     
     # Extract the train and test data for this fold
-    x_train_fold, x_val_fold = X_train.iloc[train_index], X_train.iloc[test_index]
-    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+    x_train_fold, x_val_fold = X_train.iloc[train_index], X_train.iloc[val_index]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[val_index]
 
     for j, clf in enumerate(KNN_classifiers): 
         
@@ -97,8 +100,9 @@ for i, (train_index, test_index) in enumerate(skf.split(X_train, y_train)):
         clf.fit(x_train_fold, y_train_fold)
 
         #Evaluate your metric of choice (accuracy is probably not the best choice)
-        KNN_pred = clf.predict_proba(X_test[['A', 'C', 'DG']])[:, 1]
-        AUC_val[i,j] = roc_auc_score(y_val_fold, KNN_pred)
+        y_KNN_pred = clf.predict_proba(x_val_fold[['A', 'C', 'DG']])[:, 1]
+
+        AUC_val[i,j] = roc_auc_score(y_val_fold, y_KNN_pred)
 
         # Predict the labels for the validation set
         pred_labels = clf.predict(x_val_fold)
@@ -119,13 +123,6 @@ for j, clf in enumerate(KNN_classifiers):
 
     # Train the classifier on the entire training set
     clf.fit(X_train[['A', 'C', 'DG']], y_train)
-
-    # Make predictions on the test set
-    y_pred_KNN = clf.predict_proba(X_test[['A', 'C', 'DG']])[:, 1]  # Probability of class 1
-
-    # Calculate AUC score on test set
-    auc_score_test = roc_auc_score(y_test, y_pred_KNN)
-    print(f"\nTotal AUC Score: {auc_score_test}")
 
     # Compute confusion matrix
     conf_matrix_KNN = confusion_matrix(true_labels[j], predicted_labels[j])
