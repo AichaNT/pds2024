@@ -1,64 +1,31 @@
 """
-Created on Wed Apr 19 09:53:20 2023
-
-@author: 
+@authors: cjep, kmah, feso, aith, nozo
 """
+
+
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
 # Import packages for image processing
 from skimage import morphology, filters, transform
 from skimage.segmentation import slic
 from skimage.transform import resize
 
+
+
 # ---Help functions---
 
-def load(image_dir, mask_dir):
-
-    """
-    Function to load images and masks
-
-    Inputs:
-     - Directory for images
-     - Directory for masks
-
-    Output:
-     - List of images
-     - List of masks
-     - List of filenames/image ID's
-    """
-
-    # Initialize lists to store images and masks
-    images = []
-    masks = []
-    filenames = []
-
-    # Iterate over image files
-    for im_filename in os.listdir(image_dir):
-
-        if im_filename.endswith('.png'):  
-            # Load image
-            image_path = os.path.join(image_dir, im_filename)
-
-            image = plt.imread(image_path)
-            images.append(image)
-
-            # Load corresponding mask
-            mask_filename = os.path.splitext(im_filename)[0] + '_mask.png' 
-            mask_path = os.path.join(mask_dir, mask_filename)
-
-            mask = plt.imread(mask_path)
-            masks.append(mask)
-
-            filename = im_filename.rstrip('.png')
-            filenames.append(filename)
-
-    return images, masks, filenames
-
-# --Asymmetry--
-
 def prep_mask(m):
+    '''
+    Preps and crops a mask
+
+    Parameters:
+    • m: numpy array, the input mask
+    
+    Returns:
+    • cropped_m: numpy array, the preprocessed and cropped mask
+    '''
+
     m = resize(m, (m.shape[0] // 4, m.shape[1] // 4), anti_aliasing=False)
 
     mask_bounds = np.argwhere(m == 1)
@@ -86,10 +53,18 @@ def prep_mask(m):
 
     return cropped_m
 
+
 def prep_im(im, m):
-    '''preps and crops an image for asymmetry testing
-    im_id : the complete path and id of the image
-    mask_id : the complete path and id of the mask
+    '''
+    Preps and crops an image for asymmetry testing
+    
+    Parameters:
+    • im: numpy array, the input image
+    • m: numpy array, the corresponding input mask
+
+    Returns:
+    • cropped_im: numpy array, the preprocessed and cropped image
+    • cropped_m: numpy array, the preprocessed and cropped mask
     '''
 
     im = resize(im, (im.shape[0] // 4, im.shape[1] // 4), anti_aliasing=True)
@@ -124,8 +99,18 @@ def prep_im(im, m):
 
     return cropped_im, cropped_m
 
+
 def axis_split(png):
-    '''takes a prepped image or mask and splits it in two over the x-axis and the y-axis, yielding 4 images'''
+    '''
+    Takes a prepped image or mask and splits it in two over the x-axis and the y-axis, yielding 4 images
+
+    Parameters:
+    • png: numpy array, the input image or mask
+
+    Returns:
+    • four numpy arrays representing the top, bottom, left, and right parts of the input
+    '''
+
     mid_v = png.shape[0] // 2 #horizontal middle
     mid_h = png.shape[1] // 2 #vertical middle
     
@@ -137,8 +122,15 @@ def axis_split(png):
 
     return top, bottom, left, right
 
+
 def shape(mask):
-    '''takes a prepped mask and returns the shape asymmetry score'''
+    '''
+    Takes a prepped mask and returns the shape asymmetry score
+
+    Parameters:
+    • mask: numpy array, the preprocessed mask
+    '''
+
     top, bottom, left, right = axis_split(mask) #splitting the image in four parts
     btm = np.flip(bottom, axis = 0) #flipping the bottom onto the top
     r = np.flip(right, axis = 1) #flipping the right onto the left
@@ -169,7 +161,16 @@ def shape(mask):
 
     return x, xs, y, ys #returns overlap-percentages and asymmetry scores
 
+
 def avg(im, m):
+    '''
+    Returns the average color of the masked region in the prepped image
+
+    Parameters:
+    • im: numpy array, the preprocessed image
+    • m: numpy array, the preprocessed mask
+    '''
+
     filtered = filters.gaussian(im, sigma=5, channel_axis=-1)
     red, green, blue = [filtered[:,:,c] for c in range(3)]
     mean_red = np.mean(red[m.astype(bool)])
@@ -180,10 +181,16 @@ def avg(im, m):
 
     return avg_color
 
+
 def get_color(im, mask):
-   '''takes a prepped image and mask
-   returns an rgb-score for each quadrant of the masked part of the image
-   to be used for the color asymmetry score'''
+   '''
+   Returns an rgb-score for each quadrant of the masked part of the image,
+   to be used for the color asymmetry score
+
+   Parameters:
+   • im: numpy array, the preprocessed image
+   • mask: numpy array, the preprocessed mask
+   '''
 
    top, bottom, left, right = axis_split(im) #splitting the image on the x- and y-axis
    tm, bm, lm, rm = axis_split(mask) #splitting the mask on the x- and y-axis
@@ -195,11 +202,19 @@ def get_color(im, mask):
 
    return avg_top, avg_bottom, avg_left, avg_right
 
+
 def a_color(im, mask):
     '''
-    takes a prepped image and mask and runs the get_color function on the image and mask
-    returns an asymmetry score equal to either 0, 1 and 2 for no asymmetry or asymmetry on one or both of the x- and y-axis
+    Calculates the color asymmetry score for a prepped image and mask
+
+    Parameters:
+    • im: numpy array, the preprocessed image
+    • mask: numpy array, the preprocessed mask
+    
+    Returns:
+    • The asymmetry score equal to either 0, 1 and 2 for no asymmetry or asymmetry on one or both of the x- and y-axis
     '''
+
     top, bottom, left, right = get_color(im, mask) #getting rgb-values
     x_axis = abs(top - bottom) #finding the absolute difference between the top and bottom color
     y_axis = abs(left - right) #finding the absolute difference between the left and right color
@@ -215,14 +230,19 @@ def a_color(im, mask):
 
     return xc_a, yc_a #return axes' asymmetry score
 
+
 def final_score(im, mask):
     '''
-    takes a prepped image and mask
-    combines the color and shape asymmetry scores
-    by comparing the axes' scores
-    gives each axis a score of 0 or at most 1
-    and adds these for the final score, which is either 0, 1 or 2
+    Combines the color and shape asymmetry scores by comparing the axes' scores
+    
+    Parameters:
+    • im: numpy array, the preprocessed image
+    • mask: numpy array, the preprocessed mask
+    
+    Returns:
+    • Final score, which is either 0, 1 or 2
     '''
+
     xc, yc = a_color(im, mask) #getting color asymmetry score
     x, xs, y, ys = shape(mask) #getting shape asymmetry score
 
@@ -239,13 +259,22 @@ def final_score(im, mask):
 
     return total #returning total score
 
+
+
+# ---Asymmetry---
+
 def asymmetry(im, mask):
     '''
-    takes an image and mask
-    rotates the mask until the orientation with the best symmetry is found
-    rotates the image, gets the color symmetry score
-    and combines these
-    output is final asymmetry score where both color and shape is accounted for
+    Takes an image and mask.
+    Rotates the input mask until the orientation with the best symmetry is found
+    Rotates the input image, gets the color symmetry score, and combines these
+    
+    Parameters:
+    • im: numpy array, the input image
+    • mask: numpy array, the input mask corresponding to the image
+
+    Returns:
+    • final asymmetry score where both color and shape is accounted for (0, 1, or 2)
     '''
 
     rotated_mask = mask
@@ -271,26 +300,37 @@ def asymmetry(im, mask):
     
     return score
 
-# --Color--
+
+
+# ---Color---
+
 def color(im, mask):
 
     """
+    Computes the number of unique colors in a lesion image
+
+    Parameters:
+    • im: numpy array, the input image
+    • mask: numpy array, the corresponding input mask
+
+    Returns:
+    • The number of unique colors in the masked region of the image
     """
 
-    # Segment the image using skimage SLIC (Simple Linear Iterative Clustering)
+    # Segment the image using skimage SLIC
     segments = slic(im, n_segments=12, compactness=10, sigma=1, mask=mask)
 
     # Initialize a dictionary to store average RGB values for each segment
     # key = color average, value = list of segments with this color average
     segment_avg_rgb = {}
 
-    # Iterate over each unique segment ID
+    # Iterate over unique segment IDs
     for segment_id in np.unique(segments):
 
         # Create a mask for the current segment
         segment_mask = segments == segment_id 
 
-        # Extract pixels belonging to the current segment
+        # Extract pixels from the current segment
         segment_pixels = im[segment_mask] 
 
         # Calculate the average RGB value for the segment
@@ -302,18 +342,29 @@ def color(im, mask):
         else:
             segment_avg_rgb[avg_rgb] = [segment_id]
 
-        # Calculate the number of unique colors in the image by counting the keys in the dictionary
+        # Calculate the number of unique colors in the image by counting the keys
         num_colors = len(segment_avg_rgb) 
 
-    return num_colors*0.5
+    return num_colors*0.5 # Multiplying number of colors with 0.5 to normalize results
 
-# --Irregular dots/Globules--
+
+
+# ---Irregular dots/Globules---
+
 def dg(im, mask):
 
     """
+    Detects irregular dots/globules within the lesion area
+
+    Parameters:
+    • im: numpy array, the input image
+    • mask: numpy array, the corresponding input mask 
+
+    Returns:
+    • A score of either 0 or 1, indicating the absence or presence of the feature
     """
 
-    # Gaussian blur
+    # Gaussian blur to filter out interfering features - such as hair
     im_blur = filters.gaussian(im, sigma=5, channel_axis=-1)
 
     # Extracting the color layers
@@ -333,7 +384,7 @@ def dg(im, mask):
     # Threshold for comparison
     threshold = 0.85  
 
-    # Binary mask where intensity is lower than the average intensity and color is brownish
+    # Binary mask where intensity is lower than the average intensity
     dg_mask = (intensity < average_intensity * threshold)
 
     # Apply the lesion mask
@@ -351,33 +402,4 @@ def dg(im, mask):
     return score
 
 
-# Directory paths for images and masks
-image_dir = input("Please enter image directory: ")
-mask_dir = input("Please enter mask directory: ")
-output_folder = input("Please enter output folder path: ")
-
-# Load images and masks
-images, masks, filenames = load(image_dir, mask_dir)
-
-# Path to the output CSV file
-output_path = os.path.join(output_folder, "features.csv")
-
-# CSV file with the results
-# CSV file with the results
-with open(output_path, "w") as outfile:
-
-    outfile.write(f"image_id,A,C,DG\n")
-
-    for index, (im, mask) in enumerate(zip(images, masks)):
-        
-        im_id = filenames[index]
-
-        # Call functions
-        a_score = asymmetry(im, mask)
-        c_score = color(im, mask)
-        dg_score = dg(im, mask)
-
-        outfile.write(f"{im_id},{a_score},{c_score},{dg_score}\n")
-
-print('A CSV file has been created with the results!')
 
