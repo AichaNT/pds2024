@@ -60,7 +60,7 @@ def load(image_dir, mask_dir):
 # Directory paths for images, masks and output
 image_dir = input("Please enter image directory: ")
 mask_dir = input("Please enter mask directory: ")
-output_dir = input("Please enter output directory: ")
+output_dir = input("Please enter output directory to store results.csv: ")
 
 
 # Load images and masks
