@@ -37,39 +37,50 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 # ---Decision tree---
 
-# Define and train model with different max_depth
-clf_DT = DecisionTreeClassifier(max_depth=None, max_leaf_nodes=None) 
-clf_DT.fit(X_train[['A', 'C', 'DG']], y_train)
+DT_classifiers = [
+    DecisionTreeClassifier(max_depth=None, max_leaf_nodes=2),
+    DecisionTreeClassifier(max_depth=None, max_leaf_nodes=4),
+    DecisionTreeClassifier(max_depth=None, max_leaf_nodes=6),
+    DecisionTreeClassifier(max_depth=None, max_leaf_nodes=8)
+]
 
-# Plot decision tree structure
-plt.figure(figsize=(7, 5))
-tree.plot_tree(clf_DT, feature_names=['A', 'C', 'DG'], class_names=['0', '1'])
-plt.show()
+# Loop through each classifier
+for j, clf in enumerate(DT_classifiers):
 
-# Prediction
-y_pred_DT = clf_DT.predict_proba(X_train[['A', 'C', 'DG']])[:, 1]  # Probability of class 1
+    print(f"\n\nFor {2 * (j + 1)} leaf nodes:\n")
 
-# Calculate AUC score
-auc_score_DT = roc_auc_score(y_train, y_pred_DT)
-print("AUC Score:", auc_score_DT)
+    # Train model with different max_depth
+    clf.fit(X_train[['A', 'C', 'DG']], y_train)
 
-# Predict the labels for the training set
-y_pred_labels_DT = clf_DT.predict(X_train[['A', 'C', 'DG']])
+    # Plot decision tree structure
+    plt.figure(figsize=(5, 3))
+    tree.plot_tree(clf, feature_names=['A', 'C', 'DG'], class_names=['0', '1'])
+    #plt.show()
 
-# Compute confusion matrix
-conf_matrix_DT = confusion_matrix(y_train, y_pred_labels_DT)
-print("\nConfusion Matrix:")
-print(conf_matrix_DT)
+    # Prediction
+    y_pred = clf.predict_proba(X_train)[:, 1]  # Probability of class 1
+
+    # Calculate AUC score
+    auc_score = roc_auc_score(y_train, y_pred)
+    print(f"AUC Score : {auc_score}\n")
+
+    # Predict the labels for the training set
+    y_pred_labels = clf.predict(X_train)
+
+    # Compute confusion matrix
+    conf_matrix_DT = confusion_matrix(y_train, y_pred_labels)
+    print("\nConfusion Matrix:")
+    print(conf_matrix_DT)
 
 
 
-# ---KNN neighbors---
+# ---KN neighbors---
 
 # Prepare cross-validation
 num_folds = 5
 skf = StratifiedKFold(n_splits=num_folds)
 
-#Different classifiers to test out
+# Different classifiers to test out
 KNN_classifiers = [
     KNeighborsClassifier(n_neighbors=1),
     KNeighborsClassifier(n_neighbors=3),
@@ -81,7 +92,7 @@ KNN_classifiers = [
 
 num_KNN_classifiers = len(KNN_classifiers)
 
-AUC_val = np.empty([num_folds,num_KNN_classifiers])
+AUC_val = np.empty([num_folds, num_KNN_classifiers])
 
 true_labels = [[] for _ in range(num_KNN_classifiers)]
 predicted_labels = [[] for _ in range(num_KNN_classifiers)]
@@ -99,9 +110,8 @@ for i, (train_index, val_index) in enumerate(skf.split(X_train, y_train)):
         # Fit the classifier on the training data
         clf.fit(x_train_fold, y_train_fold)
 
-        #Evaluate your metric of choice (accuracy is probably not the best choice)
-        y_KNN_pred = clf.predict_proba(x_val_fold[['A', 'C', 'DG']])[:, 1]
-
+        # Evaluate your metric of choice 
+        y_KNN_pred = clf.predict_proba(x_val_fold)[:, 1] # Probability of class 1
         AUC_val[i,j] = roc_auc_score(y_val_fold, y_KNN_pred)
 
         # Predict the labels for the validation set
@@ -117,12 +127,12 @@ average_KNN_acc = np.mean(AUC_val, axis=0)
 # Loop through each classifier
 for j, clf in enumerate(KNN_classifiers):
     
-    print(f'\n\nFor KNN classifier {j+1}:\n')
+    print(f'\n\nFor KNN classifier with neighbors = {2 * j + 1}:\n')
 
     print(f'Average AUC: {average_KNN_acc[j]}')
 
     # Train the classifier on the entire training set
-    clf.fit(X_train[['A', 'C', 'DG']], y_train)
+    clf.fit(X_train, y_train)
 
     # Compute confusion matrix
     conf_matrix_KNN = confusion_matrix(true_labels[j], predicted_labels[j])
