@@ -67,10 +67,10 @@ for j, clf in enumerate(DT_classifiers):
     print(f"AUC Score : {auc_score}\n")
 
     # Predict the labels for the training set
-    y_pred_labels = clf.predict(X_test)
+    y_pred_labels = clf.predict(X_train) #test??
 
     # Compute confusion matrix
-    conf_matrix_DT = confusion_matrix(y_test, y_pred_labels)
+    conf_matrix_DT = confusion_matrix(y_train, y_pred_labels)
     print("\nConfusion Matrix:")
     print(conf_matrix_DT)
 
