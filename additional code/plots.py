@@ -5,8 +5,8 @@ import numpy as np
 from skimage import filters
 
 # Load image
-im_path = "/Users/norazouhtane/Desktop/PDS/GitHub/Final-Assignment/Koala_images_and_masks/Images/PAT_46_880_308.png"
-mask_path = "/Users/norazouhtane/Desktop/PDS/GitHub/Final-Assignment/Koala_images_and_masks/Masks/PAT_46_880_308_mask.png"
+im_path = "data/all_img_mask/img/PAT_1453_1566_310.png"
+mask_path = "data/all_img_mask/mask/PAT_1453_1566_310_mask.png"
 im = plt.imread(im_path)
 mask = plt.imread(mask_path)
 
