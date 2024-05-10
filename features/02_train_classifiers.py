@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import os
 
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
@@ -41,7 +42,8 @@ DT_classifiers = [
     DecisionTreeClassifier(max_depth=None, max_leaf_nodes=2),
     DecisionTreeClassifier(max_depth=None, max_leaf_nodes=4),
     DecisionTreeClassifier(max_depth=None, max_leaf_nodes=6),
-    DecisionTreeClassifier(max_depth=None, max_leaf_nodes=8)
+    DecisionTreeClassifier(max_depth=None, max_leaf_nodes=8),
+    DecisionTreeClassifier(max_depth=None, max_leaf_nodes=10)
 ]
 
 # Loop through each classifier
@@ -74,7 +76,7 @@ for j, clf in enumerate(DT_classifiers):
 
 
 
-# ---KN neighbors---
+# ---K-Nearest Neighbors---
 
 # Prepare cross-validation
 num_folds = 5
@@ -122,14 +124,14 @@ for i, (train_index, val_index) in enumerate(skf.split(X_train, y_train)):
         predicted_labels[j].extend(pred_labels)
 
 #Average over all folds
-average_KNN_acc = np.mean(AUC_val, axis=0) 
+average_KNN_auc = np.mean(AUC_val, axis=0) 
 
 # Loop through each classifier
 for j, clf in enumerate(KNN_classifiers):
     
     print(f'\n\nFor KNN classifier with neighbors = {2 * j + 1}:\n')
 
-    print(f'Average AUC: {average_KNN_acc[j]}')
+    print(f'Average AUC: {average_KNN_auc[j]}')
 
     # Train the classifier on the entire training set
     clf.fit(X_train, y_train)
@@ -141,11 +143,13 @@ for j, clf in enumerate(KNN_classifiers):
 
 
 # Final classifier
-#classifier = KNeighborsClassifier(n_neighbors = 5)
+classifier = KNeighborsClassifier(n_neighbors = 3)
 
 # Training this classifier on the entire dataset
-#classifier = classifier.fit(X,y)
+classifier = classifier.fit(X, y)
 
 # Saving classifier
-#filename = 'groupK_classifier.sav'
-#pickle.dump(classifier, open(filename, 'wb'))
+dir = 'features'
+filename = os.path.join(dir, 'groupK_classifier.sav')
+
+pickle.dump(classifier, open(filename, 'wb'))
