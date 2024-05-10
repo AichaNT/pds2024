@@ -5,12 +5,16 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import warnings
 
 # Import packages for image processing
 from skimage import morphology, filters, transform
 from skimage.segmentation import slic
 from skimage.transform import resize
 
+# Suppressing errors
+warnings.filterwarnings("ignore", message="invalid value encountered in scalar divide", category=RuntimeWarning)
+warnings.filterwarnings("ignore", message="One of the clusters is empty.", category=UserWarning)
 
 
 # ---Help functions---
