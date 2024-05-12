@@ -9,18 +9,19 @@ import matplotlib.pyplot as plt
 from extract_features import asymmetry, color, dg
 
 
-# The function that should classify new images. 
 # The image and mask are the same size, and are already loaded using plt.imread
 def classify(img, mask):
 
      """
+     Function that classifies new images
+     
      Parameters:
-     • img:
-     • mask:
+     • img: numpy array, the input image
+     • mask: numpy array, the corresponding input mask
      
      Returns:
-     • pred_label:
-     • pred_prob:
+     • pred_label: the predicted label for the image
+     • pred_prob: the predicted probability
      """
     
      # Save extracted features in dictionary
@@ -41,7 +42,8 @@ def classify(img, mask):
      #print('predicted label is ', pred_label)
      #print('predicted probability is ', pred_prob)
 
-     return pred_label, pred_prob
+     return int(pred_label), float(pred_prob)
  
     
 # The TAs will call the function above in a loop, for external test images/masks
+

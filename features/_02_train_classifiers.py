@@ -8,29 +8,26 @@ import matplotlib.pyplot as plt
 import pickle
 import os
 
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_val_score, cross_val_predict
+from sklearn.model_selection import train_test_split, cross_val_score, cross_val_predict
 from sklearn.tree import DecisionTreeClassifier
 from sklearn import tree
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from sklearn.metrics import roc_auc_score, confusion_matrix
+from sklearn.metrics import roc_auc_score, confusion_matrix, ConfusionMatrixDisplay
 
 
-
-label_data = "data/ground_truth.csv"
+gt_data = "data/ground_truth.csv"
 feature_data = "data/features.csv"
 
-
-df_labels = pd.read_csv(label_data)
+df_gt = pd.read_csv(gt_data)
 df_feat= pd.read_csv(feature_data)
 
-
-df = pd.merge(df_labels, df_feat, left_on=["image_id"], right_on=["image_id"])[["melanoma","A","C", "DG"]]
+df = pd.merge(df_gt, df_feat, left_on=["image_id"], right_on=["image_id"])[["melanoma","A","C", "DG"]]
 
 
 X = df[list(df.columns)[1:]]
 y = df["melanoma"]
+
 
 # Splitting the data into train and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
@@ -50,31 +47,63 @@ DT_classifiers = [
     DecisionTreeClassifier(max_depth=None, max_leaf_nodes=10)
 ]
 
+num_DT_classifiers = len(DT_classifiers)
+
+AUC_val_DT = np.empty([num_folds, num_DT_classifiers])
+
+true_labels_DT = [[] for _ in range(num_DT_classifiers)]
+predicted_labels_DT = [[] for _ in range(num_DT_classifiers)]
+
+
+# Loop through the folds
+for i, (train_index, val_index) in enumerate(skf.split(X_train, y_train)):
+    
+    # Extract the train and test data for this fold
+    x_train_fold, x_val_fold = X_train.iloc[train_index], X_train.iloc[val_index]
+    y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[val_index]
+
+    for j, clf in enumerate(DT_classifiers): 
+
+        # Fit the classifier on the training data
+        clf.fit(x_train_fold, y_train_fold)
+
+        # Plot decision tree structure
+        #plt.figure(figsize=(5, 3))
+        #tree.plot_tree(clf, feature_names=['A', 'C', 'DG'], class_names=['0', '1'])
+        #plt.show()
+
+        # Evaluate your metric of choice 
+        y_DT_pred = clf.predict_proba(x_val_fold)[:, 1] # Probability of class 1
+
+        AUC_val_DT[i,j] = roc_auc_score(y_val_fold, y_DT_pred)
+
+        # Predict the labels for the validation set
+        pred_labels_DT = clf.predict(x_val_fold)
+
+        # Append true labels and predicted labels for this fold
+        true_labels_DT[j].extend(y_val_fold)
+        predicted_labels_DT[j].extend(pred_labels_DT)
+
+#Average over all folds
+average_DT_auc = np.mean(AUC_val_DT, axis=0) 
+
 # Loop through each classifier
 for j, clf in enumerate(DT_classifiers):
+    
+    print(f'\n\nFor {2 * (j + 1)} leaf nodes:\n')
 
-    print(f"\n\nFor {2 * (j + 1)} leaf nodes:\n")
-
-    # Perform cross-validation
-    cv_scores = cross_val_score(clf, X_train[['A', 'C', 'DG']], y_train, cv=skf, scoring='roc_auc')
-
-    print(f"Mean AUC Score: {np.mean(cv_scores)}")
-
-    # Fit classifier on training data
-    clf.fit(X_train[['A', 'C', 'DG']], y_train)
-
-    # Getting predictions
-    y_pred = clf.predict(X_test[['A', 'C', 'DG']])
+    print(f'Average AUC: {average_DT_auc[j]}')
 
     # Compute confusion matrix
-    conf_matrix_DT = confusion_matrix(y_test, y_pred)
+    conf_matrix_DT = confusion_matrix(true_labels_DT[j], predicted_labels_DT[j])
     print("\nConfusion Matrix:")
     print(conf_matrix_DT)
 
-    # Plot decision tree structure
-    plt.figure(figsize=(5, 3))
-    tree.plot_tree(clf, feature_names=['A', 'C', 'DG'], class_names=['0', '1'])
-    #plt.show()
+    tn, fp, fn, tp = conf_matrix_DT.ravel()
+    sens = tp/(tp + fn)
+    spec= tn/(tn + fp)
+
+    print(f'Sensitivity: {sens}\nSpecificity: {spec}')
 
 
 
@@ -86,8 +115,7 @@ KNN_classifiers = [
     KNeighborsClassifier(n_neighbors=3),
     KNeighborsClassifier(n_neighbors=5),
     KNeighborsClassifier(n_neighbors=7),
-    KNeighborsClassifier(n_neighbors=9),
-    KNeighborsClassifier(n_neighbors=11)
+    KNeighborsClassifier(n_neighbors=9)
 ]
 
 num_KNN_classifiers = len(KNN_classifiers)
@@ -120,6 +148,7 @@ for i, (train_index, val_index) in enumerate(skf.split(X_train, y_train)):
         # Append true labels and predicted labels for this fold
         true_labels[j].extend(y_val_fold)
         predicted_labels[j].extend(pred_labels)
+        
 
 #Average over all folds
 average_KNN_auc = np.mean(AUC_val, axis=0) 
@@ -136,6 +165,13 @@ for j, clf in enumerate(KNN_classifiers):
     print("\nConfusion Matrix:")
     print(conf_matrix_KNN)
 
+    tn, fp, fn, tp = conf_matrix_KNN.ravel()
+    sens = tp/(tp + fn)
+    spec= tn/(tn + fp)
+
+    print(f'Sensitivity: {sens}\nSpecificity: {spec}')
+
+
 
 # Final classifier
 classifier = KNeighborsClassifier(n_neighbors = 3)
@@ -149,4 +185,20 @@ filename = os.path.join(dir, 'groupK_classifier.sav')
 
 pickle.dump(classifier, open(filename, 'wb'))
 
+
+
+# Prediction on test data
+test_pred = classifier.predict(X_test)
+
+# Compute and visualize confusion matrix
+conf_matrix = confusion_matrix(y_test, test_pred)
+print("\nConfusion Matrix:")
+print(conf_matrix)
+
+disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=['Not Melanoma', 'Melanoma'])
+disp.plot(cmap=plt.cm.Blues)
+plt.title("Confusion Matrix")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.show()
 
