@@ -13,7 +13,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn import tree
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from sklearn.metrics import roc_auc_score, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import roc_auc_score, confusion_matrix, ConfusionMatrixDisplay, classification_report
 
 
 gt_data = "data/ground_truth.csv"
@@ -22,10 +22,10 @@ feature_data = "data/features.csv"
 df_gt = pd.read_csv(gt_data)
 df_feat= pd.read_csv(feature_data)
 
-df = pd.merge(df_gt, df_feat, left_on=["image_id"], right_on=["image_id"])[["melanoma","A","C", "DG"]]
+df = pd.merge(df_feat, df_gt, on=["image_id"])[["melanoma","A","C", "DG"]]
 
 
-X = df[list(df.columns)[1:]]
+X = df.iloc[:, 1:]
 y = df["melanoma"]
 
 
@@ -58,7 +58,7 @@ predicted_labels_DT = [[] for _ in range(num_DT_classifiers)]
 # Loop through the folds
 for i, (train_index, val_index) in enumerate(skf.split(X_train, y_train)):
     
-    # Extract the train and test data for this fold
+    # Extract the train and validation data for this fold
     x_train_fold, x_val_fold = X_train.iloc[train_index], X_train.iloc[val_index]
     y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[val_index]
 
@@ -129,7 +129,7 @@ predicted_labels = [[] for _ in range(num_KNN_classifiers)]
 # Loop through the folds
 for i, (train_index, val_index) in enumerate(skf.split(X_train, y_train)):
     
-    # Extract the train and test data for this fold
+    # Extract the train and validation data for this fold
     x_train_fold, x_val_fold = X_train.iloc[train_index], X_train.iloc[val_index]
     y_train_fold, y_val_fold = y_train.iloc[train_index], y_train.iloc[val_index]
 
@@ -192,13 +192,13 @@ test_pred = classifier.predict(X_test)
 
 # Compute and visualize confusion matrix
 conf_matrix = confusion_matrix(y_test, test_pred)
-print("\nConfusion Matrix:")
-print(conf_matrix)
 
 disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=['Not Melanoma', 'Melanoma'])
 disp.plot(cmap=plt.cm.Blues)
 plt.title("Confusion Matrix")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
+plt.tight_layout() 
 plt.show()
 
+print(classification_report(y_test, test_pred, target_names=['Not Melanoma', 'Melanoma']))
