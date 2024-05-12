@@ -115,7 +115,8 @@ KNN_classifiers = [
     KNeighborsClassifier(n_neighbors=3),
     KNeighborsClassifier(n_neighbors=5),
     KNeighborsClassifier(n_neighbors=7),
-    KNeighborsClassifier(n_neighbors=9)
+    KNeighborsClassifier(n_neighbors=9),
+    KNeighborsClassifier(n_neighbors=11)
 ]
 
 num_KNN_classifiers = len(KNN_classifiers)
