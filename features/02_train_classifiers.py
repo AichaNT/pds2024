@@ -9,6 +9,7 @@ import pickle
 import os
 
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score, cross_val_predict
 from sklearn.tree import DecisionTreeClassifier
 from sklearn import tree
 from sklearn.neighbors import KNeighborsClassifier
@@ -21,8 +22,8 @@ label_data = "data/ground_truth.csv"
 feature_data = "data/features.csv"
 
 
-df_labels = pd.read_csv(feature_data)
-df_feat= pd.read_csv(label_data)
+df_labels = pd.read_csv(label_data)
+df_feat= pd.read_csv(feature_data)
 
 
 df = pd.merge(df_labels, df_feat, left_on=["image_id"], right_on=["image_id"])[["melanoma","A","C", "DG"]]
@@ -34,6 +35,9 @@ y = df["melanoma"]
 # Splitting the data into train and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
+# Prepare cross-validation
+num_folds = 5
+skf = StratifiedKFold(n_splits=num_folds)
 
 
 # ---Decision tree---
@@ -51,36 +55,30 @@ for j, clf in enumerate(DT_classifiers):
 
     print(f"\n\nFor {2 * (j + 1)} leaf nodes:\n")
 
-    # Train model with different max_depth
+    # Perform cross-validation
+    cv_scores = cross_val_score(clf, X_train[['A', 'C', 'DG']], y_train, cv=skf, scoring='roc_auc')
+
+    print(f"Mean AUC Score: {np.mean(cv_scores)}")
+
+    # Fit classifier on training data
     clf.fit(X_train[['A', 'C', 'DG']], y_train)
+
+    # Getting predictions
+    y_pred = clf.predict(X_test[['A', 'C', 'DG']])
+
+    # Compute confusion matrix
+    conf_matrix_DT = confusion_matrix(y_test, y_pred)
+    print("\nConfusion Matrix:")
+    print(conf_matrix_DT)
 
     # Plot decision tree structure
     plt.figure(figsize=(5, 3))
     tree.plot_tree(clf, feature_names=['A', 'C', 'DG'], class_names=['0', '1'])
     #plt.show()
 
-    # Prediction
-    y_pred = clf.predict_proba(X_train)[:, 1]  # Probability of class 1
-
-    # Calculate AUC score
-    auc_score = roc_auc_score(y_train, y_pred)
-    print(f"AUC Score : {auc_score}\n")
-
-    # Predict the labels for the training set
-    y_pred_labels = clf.predict(X_train) #test??
-
-    # Compute confusion matrix
-    conf_matrix_DT = confusion_matrix(y_train, y_pred_labels)
-    print("\nConfusion Matrix:")
-    print(conf_matrix_DT)
-
 
 
 # ---K-Nearest Neighbors---
-
-# Prepare cross-validation
-num_folds = 5
-skf = StratifiedKFold(n_splits=num_folds)
 
 # Different classifiers to test out
 KNN_classifiers = [
@@ -133,9 +131,6 @@ for j, clf in enumerate(KNN_classifiers):
 
     print(f'Average AUC: {average_KNN_auc[j]}')
 
-    # Train the classifier on the entire training set
-    clf.fit(X_train, y_train)
-
     # Compute confusion matrix
     conf_matrix_KNN = confusion_matrix(true_labels[j], predicted_labels[j])
     print("\nConfusion Matrix:")
@@ -153,3 +148,5 @@ dir = 'features'
 filename = os.path.join(dir, 'groupK_classifier.sav')
 
 pickle.dump(classifier, open(filename, 'wb'))
+
+
