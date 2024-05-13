@@ -202,19 +202,5 @@ plt.ylabel("True Label")
 plt.tight_layout() 
 plt.show()
 
-print(classification_report(y_test, test_pred, target_names=['Not Melanoma', 'Melanoma']))
+print('\n\n' + classification_report(y_test, test_pred, target_names=['Not Melanoma', 'Melanoma']))
 
-# Visualize KNN classification
-plt.figure(figsize=(10, 6))
-
-# Plot points
-plt.scatter(X_test[:, 0], X_test[:, 1], c=y_pred, cmap=plt.cm.Set1, edgecolor='k')
-
-# Plot training data points
-plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=plt.cm.Set1, marker='o', edgecolor='k', s=100)
-
-plt.xlabel('Sepal length')
-plt.ylabel('Sepal width')
-plt.title('KNN Classification (k = %d)' % k)
-
-plt.show()
