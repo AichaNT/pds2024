@@ -55,7 +55,7 @@ def transform_score(score):
         return 3.0
     return score
 
-# Apply the transformation only to the C_x column
+# Apply the transformation only to the C_x column (mean manual annotations)
 c_df.loc[:, 'C_x'] = c_df.loc[:, 'C_x'].apply(transform_score)
 c_df.loc[:, ['C_x', 'C_y']] *= 10 # Multiplying by 10 to get rid of decimals
 
