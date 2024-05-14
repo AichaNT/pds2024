@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 
+
 man_an_fp = "additional_data/manual_annotations.csv"
 
 man_an = pd.read_csv(man_an_fp, header=None, skiprows=1)
