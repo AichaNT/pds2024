@@ -80,8 +80,8 @@ from skimage import io, transform
 from skimage.transform import resize
 
 # Load an example image and mask
-image_path = '/Users/norazouhtane/Desktop/PDS/GitHub/Final-Assignment/Koala_images_and_masks/Images/PAT_262_402_14.png'
-mask_path = '/Users/norazouhtane/Desktop/PDS/GitHub/Final-Assignment/Koala_images_and_masks/Masks/PAT_262_402_14_mask.png'
+image_path = 'data/all_img_mask/img/PAT_262_402_14.png'
+mask_path = 'data/data_groupk/masks/PAT_262_402_14_mask.png'
 
 # Read image and mask
 image = io.imread(image_path)
