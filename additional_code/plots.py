@@ -80,11 +80,11 @@ from skimage import io, transform
 from skimage.transform import resize
 
 # Load an example image and mask
-image_path = 'data/all_img_mask/img/PAT_262_402_14.png'
-mask_path = 'data/data_groupk/masks/PAT_262_402_14_mask.png'
+im_path = "data/all_img_mask/img/PAT_1453_1566_310.png"
+mask_path = "data/all_img_mask/mask/PAT_1453_1566_310_mask.png"
 
 # Read image and mask
-image = io.imread(image_path)
+image = io.imread(im_path)
 mask = io.imread(mask_path)
 
 # ---Asymmetry code---
@@ -214,15 +214,13 @@ def asymmetry(im, mask):
     mask = transform.rotate(mask, best_rotation)
     im_rotated = transform.rotate(im, best_rotation, mode="constant", cval=0)
     final_im, final_mask = prep_im(im_rotated, mask)
-    score = final_score(final_im, final_mask)
+    
 
-    xc_a, yc_a = a_color(im_rotated, mask)
-
-    return score, xc_a, yc_a, im_rotated, rotated_mask, best_rotation
+    return im_rotated, rotated_mask, best_rotation
 
 
 # Calling the asymmetry function to access im_rotated and best_rotation
-score, xc_a, yc_a, im_rotated, rotated_mask, best_rotation = asymmetry(image, mask)
+im_rotated, rotated_mask, best_rotation = asymmetry(image, mask)
 
 # Plotting original image
 plt.figure(figsize=(10, 5))
