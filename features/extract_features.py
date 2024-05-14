@@ -346,8 +346,8 @@ def color(im, mask):
         else:
             segment_avg_rgb[avg_rgb] = [segment_id]
 
-        # Calculate the number of unique colors in the image by counting the keys
-        num_colors = len(segment_avg_rgb) 
+    # Calculate the number of unique colors in the image by counting the keys
+    num_colors = len(segment_avg_rgb) 
 
     return num_colors*0.5 # Multiplying number of colors with 0.5 to normalize results
 
