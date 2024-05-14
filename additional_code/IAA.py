@@ -26,18 +26,21 @@ dg_df = merged_df[['image_id', 'DG_x', 'DG_y']]
 a_man = [round(value) for value in a_df['A_x']]
 a_auto = [round(value) for value in a_df['A_y']]
 
-cohen_kappa_score(a_man, a_auto)
+print(f'\nAgreement score for Asymmetry: {cohen_kappa_score(a_man, a_auto)}')
 
 
 # Dots/globules cohen kappa score when rounding 
-dg_man = [round(value) for value in dg_df['DG']]
-dg_auto = [round(value) for value in dg_df['DG']]
+dg_man = [round(value) for value in dg_df['DG_x']]
+dg_auto = [round(value) for value in dg_df['DG_y']]
 
-cohen_kappa_score(dg_man, dg_auto)
+print(f'\nAgreement score for Irregular dots/Globules: {cohen_kappa_score(dg_man, dg_auto)}')
 
 
-# Define the transformation function
+# Transformation function for color scores
 def transform_score(score):
+    """
+    Funtion that transforms the color scores into nominal values.
+    """
     if 0.5 <= score < 0.75:
         return 1.5
     elif 0.75 <= score < 1.25:
@@ -54,10 +57,11 @@ def transform_score(score):
 
 # Apply the transformation only to the C_x column
 c_df.loc[:, 'C_x'] = c_df.loc[:, 'C_x'].apply(transform_score)
-c_df.loc[:, ['C_x', 'C_y']] *= 10
+c_df.loc[:, ['C_x', 'C_y']] *= 10 # Multiplying by 10 to get rid of decimals
 
 # Color cohen kappa score
 c_man = list(c_df['C_x'].astype(int))
 c_auto = list(c_df['C_y'].astype(int))
 
-cohen_kappa_score(c_man, c_auto)
+print(f'\nAgreement score for Color: {cohen_kappa_score(c_man, c_auto)}\n')
+
