@@ -19,7 +19,7 @@ Line 20: You should provide a path for the folder where the CSV for the automate
 
 
 ### **Step 3: For 03_evaluate_classifier.py**
-Use the classify() function on images to extract the features and classify images.
+Use the classify() function on images and masks to extract the features and classify images.
 
 
 
