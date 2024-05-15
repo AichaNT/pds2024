@@ -6,19 +6,19 @@ Please open "requirements.txt" to find the required packages
 ## **How to use it:**
 
 
-### **Step 1: For _01_process_image.py**
+### **Step 1: For 01_process_image.py**
 
 Run the file and follow the directions of the prompts to enter image and mask directories and output directory. If you wish to use the load function please be sure to use png images.  
 
 
-### **Step 2: For _02_train_classifier.py**
+### **Step 2: For 02_train_classifier.py**
 
 Line 19: You should provide a path for the folder where the ground truth is stored.
 
 Line 20: You should provide a path for the folder where the CSV for the automated feature extractions is stored. 
 
 
-### **Step 3: For _03_evaluate_classifier.py**
+### **Step 3: For 03_evaluate_classifier.py**
 Use the classify() function on images to extract the features and classify images.
 
 
