@@ -70,7 +70,8 @@ def prep_im(im, m):
     • cropped_im: numpy array, the preprocessed and cropped image
     • cropped_m: numpy array, the preprocessed and cropped mask
     '''
-
+    #this first part is from a google colab notebook:
+    # link: https://colab.research.google.com/drive/1yJlXBwwAgGljolCATrn5h5BFBVAeImaU?usp=sharing
     im = resize(im, (im.shape[0] // 4, im.shape[1] // 4), anti_aliasing=True)
 
     m = resize(m, (m.shape[0] // 4, m.shape[1] // 4), anti_aliasing=False)
